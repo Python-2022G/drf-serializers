@@ -5,19 +5,19 @@ from rest_framework import status
 from django.forms.models import model_to_dict
 
 from .models import Task
-from .serializers import TaskRetrieveSerializer, TaskCreateSerializer, TaskUpdateSerializer
+from .serializers import TaskSerializer
 
 
 class TaskList(APIView):
     def get(self, request: Request) -> Response:
         tasks = Task.objects.all()
-        serializer = TaskRetrieveSerializer(tasks, many=True)
+        serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
     def post(self, reqeust: Request):
         data = reqeust.data
 
-        serializer = TaskCreateSerializer(data=data)
+        serializer = TaskSerializer(data=data)
 
         if serializer.is_valid():
             serializer.save()
@@ -30,7 +30,7 @@ class TaskDetail(APIView):
     def get(self, request: Request, pk: int) -> Response:
         try:
             task = Task.objects.get(pk=pk)
-            serializer = TaskRetrieveSerializer(task)
+            serializer = TaskSerializer(task)
             return Response(serializer.data)
         except Task.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -42,7 +42,7 @@ class TaskDetail(APIView):
         except Task.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        serializer = TaskUpdateSerializer(instance=task, data=request.data)
+        serializer = TaskSerializer(instance=task, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
