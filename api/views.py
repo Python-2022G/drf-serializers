@@ -4,8 +4,9 @@ from rest_framework.views import APIView
 from rest_framework import status
 from django.forms.models import model_to_dict
 
+from django.contrib.auth.models import User
 from .models import Task
-from .serializers import TaskSerializer
+from .serializers import TaskSerializer, UserSerializer
 
 
 class TaskList(APIView):
@@ -48,3 +49,15 @@ class TaskDetail(APIView):
             return Response(serializer.data)
 
         return Response(serializer.errors)
+
+
+class UserDetail(APIView):
+    def get(self, reqeust: Request, pk: int) -> Response:
+        try:
+            user = User.objects.get(id=pk)
+        except User.DoesNotExist:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = UserSerializer(user)
+
+        return Response(serializer.data)
