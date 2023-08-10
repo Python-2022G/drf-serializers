@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from django.forms.models import model_to_dict
+from rest_framework.permissions import IsAuthenticated
 
 from django.contrib.auth.models import User
 from .models import Task
@@ -10,8 +11,12 @@ from .serializers import TaskSerializer, UserSerializer
 
 
 class TaskList(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request: Request) -> Response:
-        tasks = Task.objects.all()
+        user = request.user
+
+        tasks = user.tasks
         serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
@@ -28,13 +33,19 @@ class TaskList(APIView):
 
 
 class TaskDetail(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request: Request, pk: int) -> Response:
         try:
-            task = Task.objects.get(pk=pk)
+            user = request.user
+
+            task = user.tasks.get(pk=pk)
             serializer = TaskSerializer(task)
             return Response(serializer.data)
         except Task.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                data={'error': 'task does not exist.'},
+                status=status.HTTP_404_NOT_FOUND)
 
 
     def put(self, request: Request, pk: int):
