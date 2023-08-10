@@ -4,6 +4,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 from django.forms.models import model_to_dict
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import BasicAuthentication, TokenAuthentication
+
+
+from rest_framework.authtoken.models import Token
 
 from django.contrib.auth.models import User
 from .models import Task
@@ -11,6 +15,7 @@ from .serializers import TaskSerializer, UserSerializer
 
 
 class TaskList(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request) -> Response:
@@ -33,6 +38,7 @@ class TaskList(APIView):
 
 
 class TaskDetail(APIView):
+    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request: Request, pk: int) -> Response:
@@ -72,3 +78,15 @@ class UserDetail(APIView):
         serializer = UserSerializer(user)
 
         return Response(serializer.data)
+
+
+class Login(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        user = request.user
+
+        token = Token.objects.create(user=user)
+
+        return Response({'token': token.key})
